@@ -19,6 +19,16 @@ function logWebhook(event: string, data: Record<string, unknown> = {}) {
   console.log(`[webpeaker-wa-webhook] ${event}`, data);
 }
 
+function errorSummary(error: any) {
+  return {
+    name: error?.name,
+    message: error?.message || String(error),
+    code: error?.code,
+    status: error?.response?.status,
+    apiError: error?.response?.data?.error?.message || error?.response?.data?.message,
+  };
+}
+
 function parseMessage(body: any) {
   try {
     const value = body?.entry?.[0]?.changes?.[0]?.value;
@@ -129,6 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         import('../../lib/bot'),
         import('../../lib/whatsapp'),
       ]);
+    logWebhook('runtime_imports_loaded', { requestId });
 
     const messageId = parsed.message.message_id;
     const phone = parsed.message.from.phone;
@@ -143,13 +154,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       phone,
       payload: req.body,
     });
+    logWebhook('message_logged', { requestId, messageId, phone });
 
     await markMessageAsRead(messageId).catch(() => undefined);
+    logWebhook('mark_read_attempted', { requestId, messageId, phone });
+
     await processIncomingWhatsAppMessage(parsed);
     logWebhook('message_processed', { requestId, messageId, phone });
     return res.status(200).json({ received: true, requestId });
   } catch (error) {
-    console.error('[webpeaker-wa-webhook] processing_failed', { requestId, error });
-    return res.status(200).json({ received: true, error: 'processing_failed', requestId });
+    const summary = errorSummary(error);
+    console.error('[webpeaker-wa-webhook] processing_failed', { requestId, error: summary });
+    return res.status(200).json({ received: true, error: 'processing_failed', requestId, details: summary });
   }
 }
