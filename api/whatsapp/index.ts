@@ -135,9 +135,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const [{ hasProcessedMessage, logProcessedMessage }, { processIncomingWhatsAppMessage }, { markMessageAsRead }] =
       await Promise.all([
-        import('../../lib/messageLogs'),
-        import('../../lib/bot'),
-        import('../../lib/whatsapp'),
+        import('../../lib/messageLogs.js'),
+        import('../../lib/bot.js'),
+        import('../../lib/whatsapp.js'),
       ]);
     logWebhook('runtime_imports_loaded', { requestId });
 
