@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../../types/vercel';
+import { parseMessage } from '../../lib/parseWhatsApp';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
@@ -19,7 +20,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     console.log('WhatsApp webhook POST received');
-    const { parseMessage } = await import('../../lib/whatsapp');
     const parsed = parseMessage(req.body);
 
     if (!parsed.isMessage || !parsed.message) {
