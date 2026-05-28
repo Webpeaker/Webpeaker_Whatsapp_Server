@@ -17,13 +17,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { parseMessage } = await import('../../lib/whatsapp');
-  const parsed = parseMessage(req.body);
-  res.status(200).json({ received: true });
-
-  if (!parsed.isMessage || !parsed.message) return;
-
   try {
+    console.log('WhatsApp webhook POST received');
+    const { parseMessage } = await import('../../lib/whatsapp');
+    const parsed = parseMessage(req.body);
+
+    if (!parsed.isMessage || !parsed.message) {
+      console.log('WhatsApp webhook ignored: no user message in payload');
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
     const [{ hasProcessedMessage, logProcessedMessage }, { processIncomingWhatsAppMessage }, { markMessageAsRead }] =
       await Promise.all([
         import('../../lib/messageLogs'),
@@ -32,17 +35,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]);
 
     const messageId = parsed.message.message_id;
-    if (await hasProcessedMessage(messageId)) return;
+    const phone = parsed.message.from.phone;
+    console.log('WhatsApp message parsed', {
+      messageId,
+      phone,
+      type: parsed.message.type,
+      hasText: Boolean(parsed.message.text?.body),
+      listReply: parsed.message.list_reply?.id,
+      buttonReply: parsed.message.button_reply?.id,
+    });
+
+    if (await hasProcessedMessage(messageId)) {
+      console.log('WhatsApp duplicate message skipped', { messageId });
+      return res.status(200).json({ received: true, duplicate: true });
+    }
 
     await logProcessedMessage({
       message_id: messageId,
-      phone: parsed.message.from.phone,
+      phone,
       payload: req.body,
     });
 
     await markMessageAsRead(messageId).catch(() => undefined);
     await processIncomingWhatsAppMessage(parsed);
+    console.log('WhatsApp message processed', { messageId, phone });
+    return res.status(200).json({ received: true });
   } catch (error) {
     console.error('WhatsApp webhook processing failed', error);
+    return res.status(200).json({ received: true, error: 'processing_failed' });
   }
 }
