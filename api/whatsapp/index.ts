@@ -1,6 +1,4 @@
 import type { VercelRequest, VercelResponse } from '../../types/vercel';
-import { optionalEnv } from '../../lib/env';
-import { parseMessage } from '../../lib/whatsapp';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
@@ -8,7 +6,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    if (mode === 'subscribe' && token === optionalEnv('META_WA_VERIFY_TOKEN')) {
+    if (mode === 'subscribe' && token === (process.env.META_WA_VERIFY_TOKEN || '')) {
       return res.status(200).send(challenge);
     }
 
@@ -19,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { parseMessage } = await import('../../lib/whatsapp');
   const parsed = parseMessage(req.body);
   res.status(200).json({ received: true });
 
