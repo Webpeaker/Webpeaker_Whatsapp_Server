@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './supabaseAdmin';
+import { supabaseAdmin } from './supabaseAdmin.js';
 
 export async function hasProcessedMessage(messageId: string) {
   const { data, error } = await supabaseAdmin

@@ -1,5 +1,5 @@
 import type { BotState } from '../types/whatsapp';
-import { supabaseAdmin } from './supabaseAdmin';
+import { supabaseAdmin } from './supabaseAdmin.js';
 
 export type WhatsappSession = {
   id: string;

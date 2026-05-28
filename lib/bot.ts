@@ -1,10 +1,10 @@
 import type { ParsedWhatsAppMessage, WhatsAppListPayload } from '../types/whatsapp';
-import { createAppointment } from './appointments';
-import { notifyAdmin } from './adminNotify';
-import { createCareerApplication } from './career';
-import { createLead } from './leads';
-import { clearSession, getSession, upsertSession } from './sessions';
-import { sendListMessage, sendMessageToPhoneNumber } from './whatsapp';
+import { createAppointment } from './appointments.js';
+import { notifyAdmin } from './adminNotify.js';
+import { createCareerApplication } from './career.js';
+import { createLead } from './leads.js';
+import { clearSession, getSession, upsertSession } from './sessions.js';
+import { sendListMessage, sendMessageToPhoneNumber } from './whatsapp.js';
 
 const services: Record<string, string> = {
   service_web_development: 'Web Development',

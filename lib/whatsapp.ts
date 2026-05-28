@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { WhatsAppListPayload } from '../types/whatsapp';
-import { requireEnv } from './env';
-export { parseMessage } from './parseWhatsApp';
+import { requireEnv } from './env.js';
+export { parseMessage } from './parseWhatsApp.js';
 
 const graphVersion = 'v20.0';
 
