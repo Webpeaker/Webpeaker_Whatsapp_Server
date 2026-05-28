@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import { optionalEnv } from '../../lib/env';
-import { hasProcessedMessage, logProcessedMessage } from '../../lib/messageLogs';
-import { processIncomingWhatsAppMessage } from '../../lib/bot';
-import { markMessageAsRead, parseMessage } from '../../lib/whatsapp';
+import { parseMessage } from '../../lib/whatsapp';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
@@ -27,6 +25,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!parsed.isMessage || !parsed.message) return;
 
   try {
+    const [{ hasProcessedMessage, logProcessedMessage }, { processIncomingWhatsAppMessage }, { markMessageAsRead }] =
+      await Promise.all([
+        import('../../lib/messageLogs'),
+        import('../../lib/bot'),
+        import('../../lib/whatsapp'),
+      ]);
+
     const messageId = parsed.message.message_id;
     if (await hasProcessedMessage(messageId)) return;
 
